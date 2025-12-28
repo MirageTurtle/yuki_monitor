@@ -40,12 +40,15 @@ fn main() -> Result<()> {
             threshold_days
         );
 
-        let telegram = TelegramClient::new(config.telegram_bot_token.clone(), config.telegram_chat_id.clone());
+        let telegram = TelegramClient::new(
+            config.telegram_bot_token.clone(),
+            config.telegram_chat_id.clone(),
+        );
 
         // Format repo names as comma-separated list
         let repo_names: Vec<String> = outdated.iter().map(|e| e.name.clone()).collect();
         let message = format!(
-            "Repo(s) failed to sync in the last {} days: {}",
+            "*[USTC LUG Mirrors]* Repo(s) failed to sync in the last {} days: {}",
             threshold_days,
             repo_names.join(", ")
         );
@@ -54,7 +57,10 @@ fn main() -> Result<()> {
 
         println!("✓ Alert sent successfully!");
     } else {
-        println!("\n✓ All repos synced successfully within the last {} days.", threshold_days);
+        println!(
+            "\n✓ All repos synced successfully within the last {} days.",
+            threshold_days
+        );
     }
 
     Ok(())
