@@ -30,7 +30,8 @@ fn main() -> Result<()> {
 
     // 3. Parse output and find repos that failed to sync in the last 7 days
     let threshold_days = 7;
-    let checker = YukiMetaChecker::new(threshold_days);
+    let whitelist = config.parse_whitelist();
+    let checker = YukiMetaChecker::new(threshold_days, whitelist);
     let outdated = checker.check(&result.stdout)?;
 
     if !outdated.is_empty() {

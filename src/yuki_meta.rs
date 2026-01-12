@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use chrono::{DateTime, Duration, FixedOffset, Utc};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
 pub struct MetaEntry {
@@ -14,11 +15,12 @@ pub struct OutdatedEntry {
 
 pub struct YukiMetaChecker {
     threshold_days: i64,
+    whitelist: HashSet<String>,
 }
 
 impl YukiMetaChecker {
-    pub fn new(threshold_days: i64) -> Self {
-        Self { threshold_days }
+    pub fn new(threshold_days: i64, whitelist: HashSet<String>) -> Self {
+        Self { threshold_days, whitelist }
     }
 
     /// Parse yuki meta ls output and return entries
@@ -86,7 +88,7 @@ impl YukiMetaChecker {
             .into_iter()
             .filter_map(|entry| {
                 let age = now.signed_duration_since(entry.last_success.with_timezone(&Utc));
-                if age > threshold {
+                if age > threshold && !self.whitelist.contains(&entry.name) {
                     Some(OutdatedEntry { name: entry.name })
                 } else {
                     None
@@ -112,7 +114,7 @@ mod tests {
 adoptium.apt                 https://packages.adoptium.net/artifactory/                              false     149.1GiB   2025-12-28T06:26:13+08:00   2025-12-29T06:25:00+08:00
 anthon                       rsync://repo.aosc.io/anthon/                                            false     1.724TiB   2025-12-26T02:19:00+08:00   2025-12-29T02:13:00+08:00"#;
 
-        let checker = YukiMetaChecker::new(7);
+        let checker = YukiMetaChecker::new(7, HashSet::new());
         let entries = checker.parse_output(output).unwrap();
 
         assert_eq!(entries.len(), 2);
@@ -126,5 +128,22 @@ anthon                       rsync://repo.aosc.io/anthon/                       
             entries[1].last_success.to_rfc3339(),
             "2025-12-26T02:19:00+08:00"
         );
+    }
+
+    #[test]
+    fn test_whitelist_filtering() {
+        let output = r#"NAME                         UPSTREAM                                                                SYNCING   SIZE       LAST-SUCCESS                NEXT-RUN
+adoptium.apt                 https://packages.adoptium.net/artifactory/                              false     149.1GiB   2025-01-01T06:26:13+08:00   2025-12-29T06:25:00+08:00
+anthon                       rsync://repo.aosc.io/anthon/                                            false     1.724TiB   2025-01-01T02:19:00+08:00   2025-12-29T02:13:00+08:00"#;
+
+        let mut whitelist = HashSet::new();
+        whitelist.insert("adoptium.apt".to_string());
+
+        let checker = YukiMetaChecker::new(7, whitelist);
+        let outdated = checker.check(output).unwrap();
+
+        // Only anthon should be in outdated list (adoptium.apt is whitelisted)
+        assert_eq!(outdated.len(), 1);
+        assert_eq!(outdated[0].name, "anthon");
     }
 }

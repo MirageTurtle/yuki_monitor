@@ -1,10 +1,13 @@
 use anyhow::{Context, Result};
 use serde::Deserialize;
+use std::collections::HashSet;
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub telegram_bot_token: String,
     pub telegram_chat_id: String,
+    #[serde(default)]
+    pub repo_whitelist: Option<String>,
 }
 
 impl Config {
@@ -20,5 +23,15 @@ impl Config {
             anyhow::bail!("TELEGRAM_CHAT_ID cannot be empty");
         }
         Ok(())
+    }
+
+    pub fn parse_whitelist(&self) -> HashSet<String> {
+        self.repo_whitelist
+            .as_ref()
+            .map(|s| s.split(',')
+                .map(|name| name.trim().to_string())
+                .filter(|name| !name.is_empty())
+                .collect())
+            .unwrap_or_default()
     }
 }
