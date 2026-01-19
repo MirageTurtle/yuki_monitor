@@ -28,7 +28,7 @@ fn main() -> Result<()> {
     }
     println!("Exit code: {}", result.exit_code);
 
-    // 3. Parse output and find repos that failed to sync in the last 7 days
+    // 3. Parse output and find repos that failed to sync more than 7 days
     let threshold_days = 7;
     let whitelist = config.parse_whitelist();
     let checker = YukiMetaChecker::new(threshold_days, whitelist);
@@ -36,7 +36,7 @@ fn main() -> Result<()> {
 
     if !outdated.is_empty() {
         println!(
-            "\n✓ Found {} repo(s) failed to sync in the last {} days! Sending Telegram alert...",
+            "\n✓ Found {} repo(s) failed to sync more than {} days! Sending Telegram alert...",
             outdated.len(),
             threshold_days
         );
@@ -49,7 +49,7 @@ fn main() -> Result<()> {
         // Format repo names as comma-separated list
         let repo_names: Vec<String> = outdated.iter().map(|e| e.name.clone()).collect();
         let message = format!(
-            "*[USTC LUG Mirrors]* Repo(s) failed to sync in the last {} days: {}",
+            "*[USTC LUG Mirrors]* Repo(s) failed to sync more than {} days: {}",
             threshold_days,
             repo_names.join(", ")
         );
@@ -59,7 +59,7 @@ fn main() -> Result<()> {
         println!("✓ Alert sent successfully!");
     } else {
         println!(
-            "\n✓ All repos synced successfully within the last {} days.",
+            "\n✓ No repo failed to sync successfully more than {} days.",
             threshold_days
         );
     }
