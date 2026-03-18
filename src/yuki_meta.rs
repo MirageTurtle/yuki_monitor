@@ -20,7 +20,10 @@ pub struct YukiMetaChecker {
 
 impl YukiMetaChecker {
     pub fn new(threshold_days: i64, whitelist: HashSet<String>) -> Self {
-        Self { threshold_days, whitelist }
+        Self {
+            threshold_days,
+            whitelist,
+        }
     }
 
     /// Parse yuki meta ls output and return entries
@@ -46,11 +49,7 @@ impl YukiMetaChecker {
             }
 
             // Extract name: from start to where the name field ends (find first multiple spaces)
-            let name = line
-                .split_whitespace()
-                .next()
-                .unwrap_or("")
-                .to_string();
+            let name = line.split_whitespace().next().unwrap_or("").to_string();
 
             if name.is_empty() {
                 continue;
@@ -64,16 +63,12 @@ impl YukiMetaChecker {
                 .context("Failed to find LAST-SUCCESS timestamp")?;
 
             // Parse LAST-SUCCESS timestamp (preserving original timezone)
-            let last_success = DateTime::parse_from_rfc3339(last_success_str)
-                .context(format!(
-                    "Failed to parse LAST-SUCCESS timestamp for {}: {}",
-                    name, last_success_str
-                ))?;
+            let last_success = DateTime::parse_from_rfc3339(last_success_str).context(format!(
+                "Failed to parse LAST-SUCCESS timestamp for {}: {}",
+                name, last_success_str
+            ))?;
 
-            entries.push(MetaEntry {
-                name,
-                last_success,
-            });
+            entries.push(MetaEntry { name, last_success });
         }
 
         Ok(entries)

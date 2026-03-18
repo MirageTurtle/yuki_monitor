@@ -15,10 +15,10 @@ fn main() -> Result<()> {
     let config = Config::from_env()?;
     config.validate()?;
 
-    // 2. Execute yuki meta ls command
+    // 2. Execute yuki meta ls command with path fallback
     println!("Executing: yuki meta ls");
     let runner = CommandRunner::new(30);
-    let result = runner.execute("/usr/local/bin/yuki meta ls")?;
+    let result = runner.execute_yuki(config.yuki_command.as_deref(), "meta ls")?;
 
     if !result.stdout.is_empty() {
         println!("Command stdout: {}", result.stdout.trim());
