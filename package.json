@@ -1,0 +1,9 @@
+{
+  "name": "yuki-monitor",
+  "version": "0.3.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  }
+}
