@@ -8,8 +8,6 @@ pub struct Config {
     pub telegram_chat_id: String,
     #[serde(default)]
     pub repo_whitelist: Option<String>,
-    #[serde(default)]
-    pub yuki_command: Option<String>,
 }
 
 impl Config {
