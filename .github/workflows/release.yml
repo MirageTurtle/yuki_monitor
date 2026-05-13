@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
@@ -21,7 +21,13 @@ jobs:
       - name: Build release
         run: cargo build --release --locked
 
-      - name: Deploy - Create and Upload Release
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yuki_monitor
+          path: target/release/yuki_monitor
+
+      - name: Create and Upload Release
         uses: ncipollo/release-action@v1
         with:
           artifacts: target/release/yuki_monitor
